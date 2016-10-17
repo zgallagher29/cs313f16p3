@@ -86,6 +86,17 @@ public class Draw implements Visitor<Void> {
 
 		final float[] pts = null;
 
+
+
+
+		for(int i=0; i<s.getPoints().size();i++){
+			pts[i]=s.getPoints().indexOf(i);
+		}
+
+		assert (pts.length>=4);
+
+		pts[pts.length-1] = pts[0];
+
 		canvas.drawLines(pts, paint);
 		return null;
 	}
