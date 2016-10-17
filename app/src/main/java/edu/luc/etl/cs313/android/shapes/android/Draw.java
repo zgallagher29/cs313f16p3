@@ -30,28 +30,36 @@ public class Draw implements Visitor<Void> {
 
 	@Override
 	public Void onStroke(final Stroke c) {
-		final int newColor = paint.getColor();
+		Style style=paint.getStyle();
+		int color=paint.getColor();
 		paint.setColor(c.getColor());
+		paint.setStyle(Style.STROKE);
 		c.getShape().accept(this);
-        paint.setColor(newColor);
+		paint.setStyle(style);
+		paint.setColor(color);
 		return null;
 	}
 
 	@Override
 	public Void onFill(final Fill f) {
+
+
+		Style style=paint.getStyle();
+		int color=paint.getColor();
 		paint.setStyle(Style.FILL_AND_STROKE);
 		f.getShape().accept(this);
-		paint.setStyle(Style.STROKE);
+		paint.setStyle(style);
+		paint.setColor(color);
 		return null;
 	}
 
 	@Override
 	public Void onGroup(final Group g) {
-        Shape shape=null;
-        for ( int i=0; i<g.getShapes().size(); i++) {
-            shape.accept(this);
-        }
+		for (Shape shape: g.getShapes()) {
+			shape.accept(this);
+		}
 		return null;
+
 	}
 
 	@Override
@@ -73,30 +81,38 @@ public class Draw implements Visitor<Void> {
 
 	@Override
 	public Void onOutline(Outline o) {
-        final Style tmp = paint.getStyle();
+		Style tmp = paint.getStyle();
+		int color=paint.getColor();
         paint.setStyle(Style.STROKE);
         o.getShape().accept(this);
         paint.setStyle(tmp);
-
+		paint.setColor(color);
 		return null;
 	}
 
 	@Override
 	public Void onPolygon(final Polygon s) {
 
-		final float[] pts = null;
-
-
-
-
-		for(int i=0; i<s.getPoints().size();i++){
-			pts[i]=s.getPoints().indexOf(i);
+		final float[] pts=new float[s.getPoints().size()*4];
+		int i=0;
+		boolean flag=true;
+		for(Point p:s.getPoints()){
+			if(flag) {
+				pts[i] = p.getX();
+				pts[i + 1] = p.getY();
+				i+=2;
+				flag=false;
+			}
+			else{
+				pts[i] = p.getX();
+				pts[i + 1] = p.getY();
+				pts[i+2]=p.getX();
+				pts[i+3]=p.getY();
+				i+=4;
+			}
 		}
-
-		assert (pts.length>=4);
-
-		pts[pts.length-1] = pts[0];
-
+		pts[i]=s.getPoints().get(0).getX();
+		pts[i+1]=s.getPoints().get(0).getY();
 		canvas.drawLines(pts, paint);
 		return null;
 	}

@@ -8,7 +8,7 @@ import java.util.List;
  */
 public class BoundingBox implements Visitor<Location> {
 
-	// TODO entirely your job (except onCircle)
+
 
 	@Override
 	public Location onCircle(final Circle c) {
@@ -24,22 +24,30 @@ public class BoundingBox implements Visitor<Location> {
 	@Override
 	public Location onGroup(final Group g) {
 
-		int xleft = Integer.MAX_VALUE;
-		int xright = Integer.MIN_VALUE;
-		int ydown = Integer.MAX_VALUE;
-		int yup = Integer.MIN_VALUE;
-		final List<? extends Shape> l = g.getShapes();
-		for (Shape shape : l) {
-			final Location bb = shape.accept(this);
-			final Rectangle rect = (Rectangle) bb.getShape();
-
-			xleft = Math.min(xleft, bb.getX());
-			xright = Math.max(xright, bb.getX() + rect.getWidth());
-			ydown = Math.min(ydown, bb.getY());
-			yup = Math.max(yup, bb.getY() + rect.getHeight());
-		}
-
-		return new Location(xleft, ydown, new Rectangle(xright - xleft, yup - ydown));
+        int minX=g.getShapes().get(0).accept(this).getX();
+        int minY=g.getShapes().get(0).accept(this).getY();
+        int maxX=0;
+        int maxY=0;
+        int tempX;
+        int tempY;
+        for(Shape s: g.getShapes()) {
+            Rectangle r=(Rectangle)s.accept(this).getShape();
+            tempX=s.accept(this).getX();
+            tempY=s.accept(this).getY();
+            if(tempX+r.getWidth()>maxX){
+                maxX=tempX+r.getWidth();
+            }
+            if(tempX<minX){
+                minX=tempX;
+            }
+            if(tempY+r.getHeight()>maxY){
+                maxY=tempY+r.getHeight();
+            }
+            if(tempY<minY){
+                minY=tempY;
+            }
+        }
+        return new Location(minX,minY,new Rectangle((maxX-minX),(maxY-minY)));
 	}
 
 	@Override
@@ -77,19 +85,30 @@ public class BoundingBox implements Visitor<Location> {
 
 	@Override
 	public Location onPolygon(final Polygon s) {
-        int xleft = Integer.MAX_VALUE;
-        int xright = Integer.MIN_VALUE;
-        int ydown = Integer.MAX_VALUE;
-        int yup = Integer.MIN_VALUE;
-        final List<? extends Point> l = s.getPoints();
-        for (Point point : l) {
-            xleft = Math.min(xleft, point.accept(this).getX());
-            xright = Math.max(xright, point.accept(this).getX());
-            ydown = Math.min(ydown, point.accept(this).getY());
-            yup = Math.max(yup, point.accept(this).getY());
+        int minX=s.getPoints().get(0).getX();
+        int minY=s.getPoints().get(0).getX();
+        int maxX=0;
+        int maxY=0;
+        int tempX;
+        int tempY;
+        for(Point p: s.getPoints()){
+            tempX=p.getX();
+            tempY=p.getY();
+            if(tempX>maxX){
+                maxX=tempX;
+            }
+            else if(tempX<minX){
+                minX=tempX;
+            }
+            if(tempY>maxY){
+                maxY=tempY;
+            }
+            else if(tempY<minY){
+                minY=tempY;
+            }
+
         }
 
-        return new Location(xleft, ydown, new Rectangle((xright - xleft), (yup - ydown)));
-    }
-	}
+        return  new Location(minX,minY,new Rectangle((maxX-minX),(maxY-minY)));
+	}}
 
